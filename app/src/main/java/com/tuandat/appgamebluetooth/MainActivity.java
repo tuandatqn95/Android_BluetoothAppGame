@@ -227,6 +227,9 @@ public class MainActivity extends AppCompatActivity {
         imgvOpponentCmd = (ImageView) findViewById(R.id.imgvOpponentCmd);
         btnSend = findViewById(R.id.btn_send);
 
+        imgvMyCmd.setBackgroundResource(R.layout.shape_border);
+        imgvOpponentCmd.setBackgroundResource(R.layout.shape_border);
+
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
