@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">AppGameBluetooth</string>
+    <string name="none_paired">No device</string>
+    <string name="none_found">Not found!</string>
+</resources>
