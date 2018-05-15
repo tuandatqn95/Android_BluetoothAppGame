@@ -22,10 +22,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
+
 
     private TextView status;
     private Button btnConnect, btnSend;
@@ -44,9 +44,24 @@ public class MainActivity extends AppCompatActivity {
     public static final String DEVICE_OBJECT = "device_name";
 
     private static final int REQUEST_ENABLE_BLUETOOTH = 1;
-    private ChatController chatController;
+    private static final int DISCOVERABLE_DURATION_VALUE = 60;
+    
+    private GameController gameController;
     private BluetoothDevice connectingDevice;
     private ArrayAdapter<String> discoveredDevicesAdapter;
+
+    public enum COMMAND {
+        ROCK,
+        PAPER,
+        SCISSORS,
+        NONE
+    }
+
+    public enum RESULT {
+        WIN,
+        LOSE,
+        DRAW
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,16 +97,16 @@ public class MainActivity extends AppCompatActivity {
             switch (msg.what) {
                 case MESSAGE_STATE_CHANGE:
                     switch (msg.arg1) {
-                        case ChatController.STATE_CONNECTED:
+                        case GameController.STATE_CONNECTED:
                             setStatus("Connected to: " + connectingDevice.getName());
                             btnConnect.setEnabled(false);
                             break;
-                        case ChatController.STATE_CONNECTING:
+                        case GameController.STATE_CONNECTING:
                             setStatus("Connecting...");
                             btnConnect.setEnabled(false);
                             break;
-                        case ChatController.STATE_LISTEN:
-                        case ChatController.STATE_NONE:
+                        case GameController.STATE_LISTEN:
+                        case GameController.STATE_NONE:
                             setStatus("Not connected");
                             btnConnect.setEnabled(true);
                             break;
@@ -217,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
     private void connectToDevice(String deviceAddress) {
         bluetoothAdapter.cancelDiscovery();
         BluetoothDevice device = bluetoothAdapter.getRemoteDevice(deviceAddress);
-        chatController.connect(device);
+        gameController.connect(device);
     }
 
     private void findViewsByIds() {
@@ -248,7 +263,7 @@ public class MainActivity extends AppCompatActivity {
         switch (requestCode) {
             case REQUEST_ENABLE_BLUETOOTH:
                 if (resultCode == Activity.RESULT_OK) {
-                    chatController = new ChatController(this, handler);
+                    gameController = new GameController(this, handler);
                 } else {
                     Toast.makeText(this, "Bluetooth still disabled, turn off application!", Toast.LENGTH_SHORT).show();
                     finish();
@@ -257,14 +272,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void sendMessage(COMMAND command) {
-        if (chatController.getState() != ChatController.STATE_CONNECTED) {
+        if (gameController.getState() != GameController.STATE_CONNECTED) {
             Toast.makeText(this, "Connection was lost!", Toast.LENGTH_SHORT).show();
             return;
         }
         String message = command.toString();
         if (message.length() > 0) {
             byte[] send = message.getBytes();
-            chatController.write(send);
+            gameController.write(send);
         }
     }
 
@@ -275,7 +290,7 @@ public class MainActivity extends AppCompatActivity {
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableIntent, REQUEST_ENABLE_BLUETOOTH);
         } else {
-            chatController = new ChatController(this, handler);
+            gameController = new GameController(this, handler);
         }
     }
 
@@ -283,9 +298,9 @@ public class MainActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
 
-        if (chatController != null) {
-            if (chatController.getState() == ChatController.STATE_NONE) {
-                chatController.start();
+        if (gameController != null) {
+            if (gameController.getState() == GameController.STATE_NONE) {
+                gameController.start();
             }
         }
     }
@@ -293,8 +308,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (chatController != null)
-            chatController.stop();
+        if (gameController != null)
+            gameController.stop();
     }
 
     private final BroadcastReceiver discoveryFinishReceiver = new BroadcastReceiver() {
@@ -319,7 +334,7 @@ public class MainActivity extends AppCompatActivity {
         // Make local device discoverable
         Intent discoverableIntent = new
                 Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-        discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 60);
+        discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, DISCOVERABLE_DURATION_VALUE);
         startActivityForResult(discoverableIntent, 2);
     }
 
@@ -329,18 +344,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public enum COMMAND {
-        ROCK,
-        PAPER,
-        SCISSORS,
-        NONE
-    }
 
-    public enum RESULT {
-        WIN,
-        LOSE,
-        DRAW
-    }
 
     boolean isSent = false;
 
@@ -399,18 +403,19 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
         RESULT result = CheckResult();
+        Log.e("GameProcessing", result.name());
         switch (result) {
             case WIN:
-                Log.e("GameProcessing", "WIN");
-                Toast.makeText(this, "You are win", Toast.LENGTH_LONG).show();
+
+                Toast.makeText(this, "YOU WON!", Toast.LENGTH_LONG).show();
                 break;
             case LOSE:
-                Log.e("GameProcessing", "LOSE");
-                Toast.makeText(this, "You are lose", Toast.LENGTH_LONG).show();
+
+                Toast.makeText(this, "YOU LOST!", Toast.LENGTH_LONG).show();
                 break;
             case DRAW:
-                Log.e("GameProcessing", "DRAW");
-                Toast.makeText(this, "You are draw", Toast.LENGTH_LONG).show();
+
+                Toast.makeText(this, "YOU DREW!", Toast.LENGTH_LONG).show();
                 break;
         }
         isSent = false;

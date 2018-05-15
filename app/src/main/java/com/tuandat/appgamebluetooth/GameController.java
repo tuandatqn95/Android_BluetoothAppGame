@@ -18,8 +18,8 @@ import java.util.UUID;
  * Created by tuand on 5/1/2018.
  */
 
-public class ChatController {
-    private static final String APP_NAME = "BluetoothChatApp";
+public class GameController {
+    private static final String APP_NAME = "BluetoothGame";
     private static final UUID MY_UUID = UUID.fromString("8ce255c0-200a-11e0-ac64-0800200c9a66");
 
     private final BluetoothAdapter bluetoothAdapter;
@@ -34,7 +34,7 @@ public class ChatController {
     static final int STATE_CONNECTING = 2;
     static final int STATE_CONNECTED = 3;
 
-    public ChatController(Context context, Handler handler) {
+    public GameController(Context context, Handler handler) {
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         state = STATE_NONE;
 
@@ -166,7 +166,7 @@ public class ChatController {
         handler.sendMessage(msg);
 
         // Start the service over to restart listening mode
-        ChatController.this.start();
+        GameController.this.start();
     }
 
     private void connectionLost() {
@@ -177,7 +177,7 @@ public class ChatController {
         handler.sendMessage(msg);
 
         // Start the service over to restart listening mode
-        ChatController.this.start();
+        GameController.this.start();
     }
 
     // runs while listening for incoming connections
@@ -206,7 +206,7 @@ public class ChatController {
 
                 // If a connection was accepted
                 if (socket != null) {
-                    synchronized (ChatController.this) {
+                    synchronized (GameController.this) {
                         switch (state) {
                             case STATE_LISTEN:
                             case STATE_CONNECTING:
@@ -271,7 +271,7 @@ public class ChatController {
             }
 
             // Reset the ConnectThread because we're done
-            synchronized (ChatController.this) {
+            synchronized (GameController.this) {
                 connectThread = null;
             }
 
@@ -324,7 +324,7 @@ public class ChatController {
                 } catch (IOException e) {
                     connectionLost();
                     // Start the service over to restart listening mode
-                    ChatController.this.start();
+                    GameController.this.start();
                     break;
                 }
             }
